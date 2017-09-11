@@ -70,7 +70,8 @@ class Nagios
                   :vrml_image,
                   :statusmap_image,
                   :_2d_coords,
-                  :_3d_coords
+                  :_3d_coords,
+                  :_aws_region
 
     def initialize(host_name)
       @host_name = hostname(host_name)
@@ -396,6 +397,7 @@ class Nagios
         'statusmap_image'              => 'statusmap_image',
         '_2d_coords'                   => '2d_coords',
         '_3d_coords'                   => '3d_coords',
+        '_aws_region'                  => 'aws_region',
         'register'                     => 'register'
       }
     end
