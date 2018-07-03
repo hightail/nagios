@@ -1,6 +1,6 @@
 # nagios cookbook
 
-[![Join the chat at https://gitter.im/schubergphilis/nagios](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/schubergphilis/nagios?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.org/schubergphilis/nagios.svg)](https://travis-ci.org/schubergphilis/nagios) [![Cookbook Version](https://img.shields.io/cookbook/v/nagios.svg)](https://supermarket.chef.io/cookbooks/nagios)
+[![Build Status](https://travis-ci.org/sous-chefs/nagios.svg)](https://travis-ci.org/sous-chefs/nagios) [![Cookbook Version](https://img.shields.io/cookbook/v/nagios.svg)](https://supermarket.chef.io/cookbooks/nagios)
 
 Installs and configures Nagios server. Chef nodes are automatically discovered using search, and Nagios host groups are created based on Chef roles and optionally environments as well.
 
@@ -8,7 +8,7 @@ Installs and configures Nagios server. Chef nodes are automatically discovered u
 
 ### Chef
 
-Chef version 12.1+ is required
+Chef version 12.9+ is required
 
 Because of the heavy use of search, this recipe will not work with Chef Solo, as it cannot do any searches without a server.
 
@@ -16,22 +16,21 @@ This cookbook relies heavily on multiple data bags. See **Data Bag** below.
 
 The system running this cookbooks should have a role named 'monitoring' so that NRPE clients can authorize monitoring from that system. This role name is configurable via an attribute. See **Attributes** below.
 
-The functionality that was previously in the nagios::client recipe has been moved to its own NRPE cookbook at <https://github.com/schubergphilis/nrpe>
+The functionality that was previously in the nagios::client recipe has been moved to its own NRPE cookbook at <https://github.com/sous-chefs/nrpe>
 
 ### Platform
 
-- Debian 7+
-- Ubuntu 12.04+
-- Red Hat Enterprise Linux (CentOS/Amazon/Scientific/Oracle) 5.X, 6.X
+- Debian 8+
+- Ubuntu 14.04+
+- Red Hat Enterprise Linux (CentOS/Amazon/Scientific/Oracle) 6+
 
 **Notes**: This cookbook has been tested on the listed platforms. It may work on other platforms with or without modification.
 
 ### Cookbooks
 
-- apache2 2.0 or greater
+- apache2 4.0 or greater
 - build-essential
-- chef_nginx
-- nginx_simplecgi
+- nginx
 - php
 - yum-epel
 
@@ -39,7 +38,7 @@ The functionality that was previously in the nagios::client recipe has been move
 
 ### config
 
-[The config file](https://github.com/schubergphilis/nagios/blob/master/attributes/config.rb) contains the Nagios configuration options. Consult the [nagios documentation](http://nagios.sourceforge.net/docs/3_0/configmain.html) for available settings and allowed options. Configuration entries of which multiple entries are allowed, need to be specified as an Array.
+[The config file](https://github.com/sous-chefs/nagios/blob/master/attributes/config.rb) contains the Nagios configuration options. Consult the [nagios documentation](http://nagios.sourceforge.net/docs/3_0/configmain.html) for available settings and allowed options. Configuration entries of which multiple entries are allowed, need to be specified as an Array.
 
 Example: `default['nagios']['conf']['cfg_dir'] = [ '/etc/nagios/conf.d' , '/usr/local/nagios/conf.d' ]`
 
@@ -54,7 +53,7 @@ Example: `default['nagios']['conf']['cfg_dir'] = [ '/etc/nagios/conf.d' , '/usr/
 * `node['nagios']['aws_region_restrict']` - If set, host list will be restricted hosts in availability zones from the defined regions ('aws_regions' attribute).  Defaults to false 
 * `node['nagios']['aws_regions']` - If 'aws_region_restrict' attribute is set to true, only hosts from the defined regions will be monitored.  Defaults to '[]'
 
-* `node['nagios']['server']['install_method']` - whether to install from package or source. Default chosen by platform based on known packages available for Nagios: debian/ubuntu 'package', redhat/centos/fedora/scientific: source
+* `node['nagios']['server']['install_method']` - whether to install from package or source. Default chosen by platform based on known packages available for Nagios: debian/ubuntu 'package', redhat/centos/scientific: source
 * `node['nagios']['server']['install_yum-epel']` - whether to install the EPEL repo or not (only applies to RHEL platform family). The default value is `true`. Set this to `false` if you do not wish to install the EPEL RPM; in this scenario you will need to make the relevant packages available via another method e.g. local repo, or install from source.
 * `node['nagios']['server']['service_name']` - name of the service used for Nagios, default chosen by platform, debian/ubuntu "nagios3", redhat family "nagios", all others, "nagios"
 * `node['nagios']['home']` - Nagios main home directory, default "/usr/lib/nagios3"
@@ -70,6 +69,8 @@ Example: `default['nagios']['conf']['cfg_dir'] = [ '/etc/nagios/conf.d' , '/usr/
 * `node['nagios']['ssl_cert_file']` = Location of SSL Certificate File. default "/etc/nagios3/certificates/nagios-server.pem"
 * `node['nagios']['ssl_cert_chain_file']` = Optional location of SSL Intermediate Certificate File. No default.
 * `node['nagios']['ssl_cert_key']`  = Location of SSL Certificate Key. default "/etc/nagios3/certificates/nagios-server.pem"
+* `node['nagios']['ssl_protocols']` = The SSLProtocol string to pass to apache, defaults to "all -SSL3 -SSL2"
+* `node['nagios']['ssl_ciphers']` = The SSLCipherSuite string to pass to apache, defaults to empty (which will result in this setting not being included in the apache config)
 * `node['nagios']['http_port']` - port that the Apache/Nginx virtual site should listen on, determined whether ssl is enabled (443 if so, otherwise 80). Note:  You will also need to configure the listening port for either NGINX or Apache within those cookbooks.
 * `node['nagios']['server_name']` - common name to use in a server cert, default "nagios"
 * `node['nagios']['server']['server_alias']` - alias name for the webserver for use with Apache.  Defaults to nil
@@ -85,6 +86,7 @@ Example: `default['nagios']['conf']['cfg_dir'] = [ '/etc/nagios/conf.d' , '/usr/
 * `node['nagios']['conf']['enable_notifications']` - set to 1 to enable notification.
 * `node['nagios']['conf']['interval_length']` - minimum interval. Defaults to '1'.
 * `node['nagios']['conf']['use_timezone']` - set the timezone for nagios AND apache.  Defaults to UTC.
+* `node['nagios']['conf']['use_large_installation_tweaks']` - Attribute to enable [large installation tweaks](http://nagios.sourceforge.net/docs/3_0/largeinstalltweaks.html). Defaults to 0.
 
 * `node['nagios']['check_external_commands']`
 * `node['nagios']['default_contact_groups']`
@@ -121,7 +123,6 @@ Example: `default['nagios']['conf']['cfg_dir'] = [ '/etc/nagios/conf.d' , '/usr/
 * `node['nagios']['servicedependencies_databag']` - the databag containing servicedependencies to search for. defaults to nagios_servicedependencies
 * `node['nagios']['host_name_attribute']` - node attribute to use for naming the host. Must be unique across monitored nodes. Defaults to hostname
 * `node['nagios']['regexp_matching']` - Attribute to enable [regexp matching](http://nagios.sourceforge.net/docs/3_0/configmain.html#use_regexp_matching). Defaults to 0.
-* `node['nagios']['large_installation_tweaks']` - Attribute to enable [large installation tweaks](http://nagios.sourceforge.net/docs/3_0/largeinstalltweaks.html). Defaults to 0.
 * `node['nagios']['templates']` - These set directives in the default host template. Unless explicitly overridden, they will be inherited by the host definitions for each discovered node and `nagios_unmanagedhosts` data bag. For more information about these directives, see the Nagios documentation for [host definitions](http://nagios.sourceforge.net/docs/3_0/objectdefinitions.html#host).
 * `node['nagios']['hosts_template']` - Host template you want to inherit properties/variables from, default 'server'. For more information, see the nagios doc on [Object Inheritance](http://nagios.sourceforge.net/docs/3_0/objectinheritance.html).
 * `node['nagios']['brokers']` - Hash of broker modules to include in the config. Hash key is the path to the broker module, the value is any parameters to pass to it.
@@ -198,7 +199,7 @@ Installs the Nagios server from packages. Default for Debian / Ubuntu systems.
 
 ### server_source
 
-Installs the Nagios server from source. Default for Red Hat / Fedora based systems as native packages for Nagios are not available in the default repositories.
+Installs the Nagios server from source. Default for Red Hat based systems as native packages for Nagios are not available in the default repositories.
 
 ### pagerduty
 
@@ -208,7 +209,7 @@ This recipe was written based on the [Nagios Integration Guide](http://www.pager
 
 ## Data Bags
 
-[See Wiki for more databag information](https://github.com/schubergphilis/nagios/wiki/config)
+[See Wiki for more databag information](https://github.com/sous-chefs/nagios/wiki/config)
 
 ### Pager Duty
 

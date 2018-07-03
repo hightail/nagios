@@ -1,7 +1,7 @@
 #
-# Author:: Seth Chisamore <schisamo@getchef.com>
+# Author:: Seth Chisamore <schisamo@chef.io>
 # Author:: Tim Smith <tsmith@chef.io>
-# Cookbook Name:: nagios
+# Cookbook:: nagios
 # Attributes:: default
 #
 # Copyright 2011-2016, Chef Software, Inc.
@@ -27,13 +27,17 @@ default['nagios']['monitored_environments'] = []
 default['nagios']['user']  = 'nagios'
 default['nagios']['group'] = 'nagios'
 
+# Default vaules guarantee to exist, override in webserer recipe
+default['nagios']['web_user']  = 'nagios'
+default['nagios']['web_group'] = 'nagios'
+
 # Allow specifying which interface on clients to monitor (which IP address to monitor)
 default['nagios']['monitoring_interface'] = nil
 
 case node['platform_family']
 when 'debian'
   default['nagios']['plugin_dir'] = '/usr/lib/nagios/plugins'
-when 'rhel', 'fedora'
+when 'rhel', 'amazon'
   default['nagios']['plugin_dir'] = node['kernel']['machine'] == 'i686' ? '/usr/lib/nagios/plugins' : '/usr/lib64/nagios/plugins'
 else
   default['nagios']['plugin_dir'] = '/usr/lib/nagios/plugins'
@@ -41,7 +45,7 @@ end
 
 # platform specific directories
 case node['platform_family']
-when 'rhel', 'fedora'
+when 'rhel', 'amazon'
   default['nagios']['home']          = '/var/spool/nagios'
   default['nagios']['conf_dir']      = '/etc/nagios'
   default['nagios']['resource_dir']  = '/etc/nagios'
@@ -49,7 +53,11 @@ when 'rhel', 'fedora'
   default['nagios']['log_dir']       = '/var/log/nagios'
   default['nagios']['cache_dir']     = '/var/log/nagios'
   default['nagios']['state_dir']     = '/var/log/nagios'
-  default['nagios']['run_dir']       = '/var/run/nagios'
+  default['nagios']['run_dir'] = if node['platform'] == 'centos' && node['platform_version'].to_i < 7
+                                   '/var/run'
+                                 else
+                                   '/var/run/nagios'
+                                 end
   default['nagios']['docroot']       = '/usr/share/nagios/html'
   default['nagios']['cgi-bin']       = '/usr/lib64/nagios/cgi-bin/'
 else
@@ -72,14 +80,13 @@ when 'debian'
   default['nagios']['server']['service_name']   = 'nagios3'
   default['nagios']['server']['mail_command']   = '/usr/bin/mail'
   default['nagios']['cgi-path'] = "/cgi-bin/#{node['nagios']['server']['service_name']}"
-when 'rhel', 'fedora'
+when 'rhel', 'amazon'
   default['nagios']['cgi-path'] = '/nagios/cgi-bin/'
-  # install via source on RHEL releases less than 6, otherwise use packages
-  method = node['platform_family'] == 'rhel' && node['platform_version'].to_i < 6 ? 'source' : 'package'
-  default['nagios']['server']['install_method'] = method
+  default['nagios']['server']['install_method'] = 'package'
   default['nagios']['server']['service_name']   = 'nagios'
   default['nagios']['server']['mail_command']   = '/bin/mail'
 else
+  default['nagios']['cgi-path'] = '/cgi-bin/nagios3'
   default['nagios']['server']['install_method'] = 'source'
   default['nagios']['server']['service_name']   = 'nagios'
   default['nagios']['server']['mail_command']   = '/bin/mail'
@@ -94,11 +101,13 @@ default['nagios']['ssl_cert_file'] = "#{node['nagios']['conf_dir']}/certificates
 default['nagios']['ssl_cert_key']  = "#{node['nagios']['conf_dir']}/certificates/nagios-server.pem"
 default['nagios']['ssl_req']       = '/C=US/ST=Several/L=Locality/O=Example/OU=Operations/' \
   "CN=#{node['nagios']['server_name']}/emailAddress=ops@#{node['nagios']['server_name']}"
+default['nagios']['ssl_protocols'] = 'all -SSLv3 -SSLv2'
+default['nagios']['ssl_ciphers']   = nil
 
 # nagios server name and webserver vname.  this can be changed to allow for the installation of icinga
 default['nagios']['server']['name'] = 'nagios'
 case node['platform_family']
-when 'rhel', 'fedora'
+when 'rhel', 'amazon'
   default['nagios']['server']['vname'] = 'nagios'
 else
   default['nagios']['server']['vname'] = 'nagios3'
@@ -113,7 +122,7 @@ default['nagios']['server']['patch_url'] = nil
 
 # for server from packages installation
 case node['platform_family']
-when 'rhel', 'fedora'
+when 'rhel', 'amazon'
   default['nagios']['server']['packages'] = %w(nagios nagios-plugins-nrpe)
   default['nagios']['server']['install_yum-epel'] = true
 else
@@ -144,7 +153,6 @@ default['nagios']['servicedependencies_databag'] = 'nagios_servicedependencies'
 default['nagios']['timeperiods_databag']         = 'nagios_timeperiods'
 default['nagios']['host_name_attribute']         = 'hostname'
 default['nagios']['regexp_matching']             = 0
-default['nagios']['large_installation_tweaks']   = 0
 default['nagios']['host_template'] = 'server'
 
 # for cas authentication
@@ -187,7 +195,26 @@ default['nagios']['default_service']['flap_detection']        = true
 default['nagios']['default_service']['action_url']            = nil
 
 default['nagios']['server']['web_server']              = 'apache'
-default['nagios']['server']['nginx_dispatch']          = 'cgi'
+default['nagios']['server']['nginx_dispatch']['type']  = 'both'
+default['nagios']['server']['nginx_dispatch']['type']  = 'both'
+default['nagios']['server']['nginx_dispatch']['packages']  =
+  case node['platform_family']
+  when 'rhel'
+    %w(spawn-fcgi fcgiwrap)
+  else
+    %w(fcgiwrap)
+  end
+default['nagios']['server']['nginx_dispatch']['services']  =
+  case node['platform_family']
+  when 'rhel'
+    %w(spawn-fcgi)
+  else
+    %w(fcgiwrap)
+  end
+default['nagios']['server']['nginx_dispatch']['cgi_url']  =
+  'unix:/var/run/fcgiwrap.socket'
+default['nagios']['server']['nginx_dispatch']['php_url']  =
+  'unix:/var/run/php-fpm-www.sock'
 default['nagios']['server']['stop_apache']             = false
 default['nagios']['server']['normalize_hostname']      = false
 default['nagios']['server']['load_default_config']     = true

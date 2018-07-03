@@ -1,9 +1,9 @@
 #
 # Author:: Joshua Sierles <joshua@37signals.com>
-# Author:: Joshua Timberman <joshua@getchef.com>
-# Author:: Nathan Haneysmith <nathan@getchef.com>
-# Author:: Seth Chisamore <schisamo@getchef.com>
-# Cookbook Name:: nagios
+# Author:: Joshua Timberman <joshua@chef.io>
+# Author:: Nathan Haneysmith <nathan@chef.io>
+# Author:: Seth Chisamore <schisamo@chef.io>
+# Cookbook:: nagios
 # Definition:: nagios_conf
 #
 # Copyright 2009, 37signals
@@ -32,7 +32,7 @@ define :nagios_conf, variables: {}, config_subdir: true, source: nil do
     source params[:source]
     mode '0644'
     variables params[:variables]
-    notifies :reload, 'service[nagios]'
+    notifies :restart, 'service[nagios]'
     backup 0
   end
 end

@@ -18,7 +18,7 @@
   CustomLog       <%= node['apache']['log_dir'] %>/nagios_access.log combined
   ErrorLog        <%= node['apache']['log_dir'] %>/nagios_error.log
 
-<% if node.platform_family == 'debian' && node['nagios']['server']['install_method'] == 'package'-%>
+<% if node['platform_family'] == 'debian' && node['nagios']['server']['install_method'] == 'package'-%>
   Alias /stylesheets /etc/<%= node['nagios']['server']['vname'] %>/stylesheets
   Alias /nagios3/stylesheets /etc/<%= node['nagios']['server']['vname'] %>/stylesheets
 <% end -%>
@@ -33,9 +33,16 @@
      <% end -%>
   </Directory>
 
+  <FilesMatch ".+\.ph(p[345]?|t|tml)$">
+     SetHandler application/x-httpd-php
+  </FilesMatch>
+
 <% if @https -%>
   SSLEngine On
-  SSLProtocol all -SSLv3 -SSLv2
+  SSLProtocol <%= node['nagios']['ssl_protocols'] %>
+<% if node['nagios']['ssl_ciphers'] != nil -%>
+  SSLCipherSuite <%= node['nagios']['ssl_ciphers'] %>
+<% end -%>
   SSLCertificateFile <%= @ssl_cert_file %>
 <% if node['nagios']['ssl_cert_chain_file'] %>
   SSLCertificateChainFile <%= node['nagios']['ssl_cert_chain_file'] %>
