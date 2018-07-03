@@ -22,7 +22,7 @@ The functionality that was previously in the nagios::client recipe has been move
 
 - Debian 8+
 - Ubuntu 14.04+
-- Red Hat Enterprise Linux (CentOS/Amazon/Scientific/Oracle) 6+
+- Red Hat Enterprise Linux (CentOS/Amazon/Scientific/Oracle) 7+
 
 **Notes**: This cookbook has been tested on the listed platforms. It may work on other platforms with or without modification.
 
@@ -30,7 +30,7 @@ The functionality that was previously in the nagios::client recipe has been move
 
 - apache2 4.0 or greater
 - build-essential
-- nginx
+- nginx 7.0 or greater
 - php
 - yum-epel
 
@@ -316,6 +316,7 @@ Copyright 2009, 37signals
 Copyright 2009-2017, Chef Software, Inc
 Copyright 2012, Webtrends Inc.
 Copyright 2013-2014, Limelight Networks, Inc.
+Copyright 2018, Oracle and/or its affiliates. All rights reserved
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
